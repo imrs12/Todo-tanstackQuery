@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { maxLength, trim } from "zod";
 
 const todoSchema = new mongoose.Schema({
         title: {
