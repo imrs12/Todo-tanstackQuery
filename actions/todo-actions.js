@@ -6,8 +6,9 @@ import Todo from "@/model/todo"
 import { createTodoSchema } from "@/validations/todo"
 import { success } from "zod"
 
-export async function createTodo({data}){
+export async function createTodo(data){
     try {
+        console.log(data)
         const validatedData = createTodoSchema.parse(data)
 
         await connectDB();
@@ -22,10 +23,31 @@ export async function createTodo({data}){
         }
     } catch (error) {
         console.error("Error creating todo", error)
-
+    
         return {
             success: false,
-            error: error? error.message : "Failed to create todo"
+            error: error ? error.message : "Failed to create todo"
+        }
+    }
+}
+
+export async function getTodos(){
+    try {
+        await connectDB()
+
+        const todos = await Todo.find({}).sort({createdAt: -1})
+
+        console.log(todos)
+
+        return {
+            success:true,
+            data: JSON.parse(JSON.stringify(todos))
+        }
+    } catch (error) {
+        console.error("Error fetching todos:", error)
+        return {
+            success: false,
+            error: "Failed  to fetch todos"
         }
     }
 }
