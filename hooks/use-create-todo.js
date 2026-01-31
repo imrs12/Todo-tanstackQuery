@@ -1,4 +1,4 @@
-import { createTodo, getTodos } from "@/actions/todo-actions";
+import { createTodo, deleteTodo, getTodos, toggleTodo } from "@/actions/todo-actions";
 import { useTodoStore } from "@/store/todo-store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
@@ -11,28 +11,28 @@ export const todoKeys = {
 export function useCreateTodo(){
     const queryClient = useQueryClient()
 
-    const addTodo = useTodoStore((state)=>state.addTodo)
+    // const addTodo = useTodoStore((state)=>state.addTodo)
 
     return useMutation({
         mutationFn: (data)=>createTodo(data),
 
         onSuccess:(result)=> {
             if(result.success){
-                console.log(result.data)
+                // console.log(result.data)
                 queryClient.invalidateQueries({queryKey:todoKeys.lists()})
             }
         }
     })
 }
   
-export function useTodo(){
+export function useTodos(){
     const setTodos = useTodoStore((state) => state.setTodos)
 
     return useQuery({
         queryKey: todoKeys.lists(),
         queryFn: async ()=>{
             const result = await getTodos();
-            console.log(result)
+            // console.log(result)
 
             if(result.success){
                 setTodos(result.data)
@@ -40,6 +40,36 @@ export function useTodo(){
                 return result.data;
             }
             throw new Error(result.error)
+        }
+    })
+}
+
+export function useToggleTodo(){ 
+    const queryClient = useQueryClient()
+
+    const updateTodoInStore = useTodoStore((state)=> state.updateTodo)
+
+    return useMutation({
+        mutationFn: (id) => toggleTodo(id),
+        onSuccess: (result, id)=>{
+            if(result.success){
+                updateTodoInStore(id,{completed:result.data.completed})
+                queryClient.invalidateQueries({queryKey:todoKeys.lists()})
+            }
+        }
+    })
+}
+
+export function useDeleteTodo(){
+    const queryClient = useQueryClient()
+    const removeTodo = useTodoStore((state)=> state.removeTodo)
+    return useMutation({
+        mutationFn: (id)=> deleteTodo(id),
+        onSuccess: (result, id)=> {
+            if(result.success){
+                removeTodo(id)
+                queryClient.invalidateQueries({queryKey: todoKeys.lists()})
+            }
         }
     })
 }

@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 import connectDB from "@/lib/db"
 import Todo from "@/model/todo"
 import { createTodoSchema } from "@/validations/todo"
-import { success } from "zod"
 
 export async function createTodo(data){
     try {
@@ -37,7 +36,7 @@ export async function getTodos(){
 
         const todos = await Todo.find({}).sort({createdAt: -1})
 
-        console.log(todos)
+        // console.log(todos)
 
         return {
             success:true,
@@ -48,6 +47,65 @@ export async function getTodos(){
         return {
             success: false,
             error: "Failed  to fetch todos"
+        }
+    }
+}
+
+export async function toggleTodo(id){
+    try {
+        await connectDB()
+
+        const todo = await Todo.findById(id)
+
+        if(!todo){
+            return {
+                success: false,
+                error: "Todo not found"
+            }
+        }
+
+        todo.completed = !todo.completed
+        await todo.save();
+
+        revalidatePath("/")
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(todo))
+        }
+    } catch (error) {
+        console.error("Error toggling todo:", error);
+        return {
+            success: false,
+            error: "Failed to toggle todo"
+        }
+    }
+}
+
+export async function deleteTodo(id){
+    try {
+        await connectDB();
+
+        const todo = await Todo.findByIdAndDelete(id)
+
+        if(!todo){
+            return{
+                success: false,
+                error: "Todo not found" 
+            }
+        }
+
+        revalidatePath("/")
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(todo))
+        }
+    } catch (error) {
+        console.error('Error deleting todo:'. error)
+        return {
+            success: false,
+            error: "Failed to delete todod"
         }
     }
 }

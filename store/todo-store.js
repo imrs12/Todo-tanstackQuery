@@ -14,9 +14,36 @@ export const useTodoStore =  create(
                 todos:[todo, ...state.todo]
             })),
 
+            updateTodo:(id, updates)=>
+                set((state)=> ({
+                    todos: state.todos.map((todo)=>(todo._id === id ? {...todo, ...updates} : todo))
+                })),
+
+            removeTodo: (id) =>set((state)=> ({
+                todos: state.todos.filter((todo)=> todo._id !== id)
+            })),
+
             setFilter: (filter) => set({filter}),
 
-            setLoading: (isLoading) => set({isLoading})
+            setLoading: (isLoading) => set({isLoading}),
+
+            filteredTodos: ()=> {
+                const {todos, filter} = get()
+                switch (filter){
+                    case "active":
+                        return todos.filter((todo) => !todo.completed)
+                    case "completed":
+                        return todos.filter((todo) => todo.completed)
+                    default:
+                        return todos
+                }
+            },
+
+            completedCount: () => get().todos.filter((todo) => todo.completed).length,
+
+            activeCount: () => get().todos.filter((todo) => !todo.completed).length
+
+            
         }),
         {name: "simple-todo"}
     )
